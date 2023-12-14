@@ -44,22 +44,9 @@ aws ec2 create-key-pair --key-name EC2KeyPair --query "KeyMaterial" --output tex
 chmod 400 EC2KeyPair.pem
  
 # Deploy the instance
-aws ec2 run-instances --image-id ami-06d4b7182ac3480fa --count 1 --instance-type t2.micro --security-group-ids "$sg_id" --subnet-id "$subnet1_id" --associate-public-ip-address --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=\"$instance_name\"}]"
- 
+aws ec2 run-instances --image-id ami-087c17d1fe0178315--count 1 --instance-type t2.micro --security-group-ids "$sg_id" --subnet-id "$subnet1_id" --associate-public-ip-address --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=\"$instance_name\"}]"
 # Get the public ID of the Instance
 ec2_public_ip=$(aws ec2 describe-instances --query "Reservations[*].Instances[*].{InstanceID:InstanceId,State:State.Name,Address:PublicIpAddress}" --filters Name=tag:Name,Values="$instance_name" --output text)
  
 # SSH to the Project3 Instance
 ssh -i "EC2KeyPair.pem" ec2-user@"$ec2_public_ip" 
-
-# Create IAM Role and Policy to allow S3 access
-aws iam create-role --role-name $IAM_ROLE_NAME --assume-role-policy-document "$TRUST_POLICY_EC2"
-
-POLICY_ARN=$(aws iam create-policy --policy-name S3BucketAccessPolicy --policy-document "$ACCESS_POLICY_S3" --query Policy.Arn --output text)
-aws iam attach-role-policy --role-name $IAM_ROLE_NAME --policy-arn $POLICY_ARN
-
-# Attach IAM Role to EC2 Instance
-aws ec2 associate-iam-instance-profile --instance-id $INSTANCE_ID --iam-instance
-
-#Copy our file.png from one bucket to another 
-aws s3 cp s3://octgroup-project3/Our file.png s3://octgroup-project3.1

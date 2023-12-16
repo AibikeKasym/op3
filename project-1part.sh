@@ -44,9 +44,9 @@ aws ec2 create-key-pair --key-name EC2KeyPair --query "KeyMaterial" --output tex
 chmod 400 EC2KeyPair.pem
  
 # Deploy the instance
-aws ec2 run-instances --image-id ami-087c17d1fe0178315--count 1 --instance-type t2.micro --security-group-ids "$sg_id" --subnet-id "$subnet1_id" --associate-public-ip-address --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=\"$instance_name\"}]"
+aws ec2 run-instances --image-id ami-048e636f368eb3006 --count 1 --instance-type t2.micro --key-name EC2KeyPair --security-group-ids "$sg_id" --subnet-id "$subnet1_id" --associate-public-ip-address --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=\"$instance_name\"}]"
 # Get the public ID of the Instance
-ec2_public_ip=$(aws ec2 describe-instances --query "Reservations[*].Instances[*].{InstanceID:InstanceId,State:State.Name,Address:PublicIpAddress}" --filters Name=tag:Name,Values="$instance_name" --output text)
- 
+ec2_public_ip=$(aws ec2 describe-instances --query "Reservations[*].Instances[*].PublicIpAddress" --filters Name=tag:Name,Values="$instance_name" --output text)
+
 # SSH to the Project3 Instance
 ssh -i "EC2KeyPair.pem" ec2-user@"$ec2_public_ip" 
